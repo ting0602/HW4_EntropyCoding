@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 from utils import *
 import itertools
 
@@ -60,15 +59,16 @@ for i in range(nbh):
         # Decode the RLE-encoded block
         decoding_block = RLE_decode(block, (block_size, block_size))
         
-        # De-quantize the block using the quantization matrix
-        de_quantize_block = np.multiply(decoding_block, QUANTIZATION_MAT)   
-        
         # Inverse Zigzag scan
-        zigzag_scanned_block = inverse_zigzag(de_quantize_block.flatten(), block_size, block_size)
+        zigzag_scanned_block = inverse_zigzag(decoding_block.flatten(), block_size, block_size)
+        
+        # De-quantize the block using the quantization matrix
+        de_quantize_block = np.multiply(zigzag_scanned_block, QUANTIZATION_MAT)   
         
         # Perform Inverse DCT transform to reconstruct the block
-        decoded_blocks[i*8:(i+1)*8, j*8:(j+1)*8] = cv2.idct(zigzag_scanned_block) 
+        decoded_blocks[i*8:(i+1)*8, j*8:(j+1)*8] = cv2.idct(de_quantize_block) 
 
+cv2.imwrite("compressed_image.png",np.uint8(decoded_blocks))
 print(get_size("compressed_image.png"))
 print(get_size("lena.png"))
 
